@@ -7,10 +7,17 @@ namespace ParticleSystemExample
     /// <summary>
     /// An example game demonstrating the use of particle systems
     /// </summary>
-    public class ParticleSystemExampleGame : Game
+    public class ParticleSystemExampleGame : Game , IParticleEmitter
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        private MouseState _priorMouse;
+
+        ExplosionParticleSystem _explosions;
+        FireworkParticleSystem _firework;
+
+        public Vector2 Position { get; set; }
+        public Vector2 Velocity { get; set; }
 
         /// <summary>
         /// Constructs an instance of the game
@@ -28,6 +35,17 @@ namespace ParticleSystemExample
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            RainParticleSystem rain = new RainParticleSystem(this, new Rectangle(100, -20, 500, 10));
+            Components.Add(rain);
+
+            _explosions = new ExplosionParticleSystem(this, 20);
+            Components.Add(_explosions);
+
+            _firework = new(this, 20);
+            Components.Add(_firework);
+
+            var pixie = new PixieParticleSystem(this, this);
+            Components.Add(pixie);
 
             base.Initialize();
         }
@@ -52,7 +70,22 @@ namespace ParticleSystemExample
                 Exit();
 
             // TODO: Add your update logic here
-            
+            MouseState currentMouse = Mouse.GetState();
+            var mousePosition = new Vector2(currentMouse.X, currentMouse.Y);
+
+            if(currentMouse.LeftButton == ButtonState.Pressed && _priorMouse.LeftButton == ButtonState.Released)
+            {
+                _explosions.PlaceExplosion(mousePosition);
+            }
+
+            if (currentMouse.RightButton == ButtonState.Pressed && _priorMouse.RightButton == ButtonState.Released)
+            {
+                _firework.PlaceFirework(mousePosition);
+            }
+
+            Velocity = mousePosition - Position;
+            Position = mousePosition;
+
             base.Update(gameTime);
         }
 
